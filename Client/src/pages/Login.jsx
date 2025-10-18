@@ -133,41 +133,54 @@
 //     </div>
 //   );
 // }
-
-
-import React, { useState, useContext } from 'react';
-import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { toast } from 'react-toastify';
-import Button from '@mui/material/Button';
-
+import React, { useState, useContext } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
+import { NavLink, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import Button from "@mui/material/Button";
+import Cookies from "js-cookie";
 
 const schema = yup.object({
-  email: yup.string().email('Invalid email format').required('Email is required'),
-  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
 });
 
 const Login = () => {
   const { setUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema) });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:3000/auth/login', data);
+      const res = await axios.post("http://localhost:3000/auth/login", data);
       const { user, token } = res.data;
-      localStorage.setItem('token', token);
+
+      // ✅ Store token in cookies instead of localStorage
+      Cookies.set("token", token, { expires: 7 }); // lasts 7 days
+
       setUser(user);
-      toast.success('Login successful!');
-      navigate('/');
+      toast.success("Login successful!");
+
+      // ✅ Redirect to dashboard after login
+      navigate("/");
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -177,21 +190,52 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email Field */}
           <div>
-            <input {...register('email')} type="email" placeholder="Email" className="w-full p-2 border rounded" />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+            <input
+              {...register("email")}
+              type="email"
+              placeholder="Email"
+              className="w-full p-2 border rounded"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
           </div>
+
+          {/* Password Field */}
           <div>
-            <input {...register('password')} type="password" placeholder="Password" className="w-full p-2 border rounded" />
-            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+            <input
+              {...register("password")}
+              type="password"
+              placeholder="Password"
+              className="w-full p-2 border rounded"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password.message}</p>
+            )}
           </div>
+
+          {/* Login Button */}
           <Button type="submit" disabled={loading} variant="contained" fullWidth>
             {loading ? "Logging in..." : "Login"}
           </Button>
 
-          <NavLink to="/forgotpassword" className="block text-center text-blue-500 mt-2">Forgot Password?</NavLink>
-          <NavLink to="/signup" className="block text-center text-blue-500 mt-2">Sign Up</NavLink>
+          {/* Links */}
+          <NavLink
+            to="/forgotpassword"
+            className="block text-center text-blue-500 mt-2"
+          >
+            Forgot Password?
+          </NavLink>
+          <NavLink
+            to="/signup"
+            className="block text-center text-blue-500 mt-2"
+          >
+            Sign Up
+          </NavLink>
         </form>
       </div>
     </div>

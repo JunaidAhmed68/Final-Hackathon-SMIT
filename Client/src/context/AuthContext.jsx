@@ -5,48 +5,44 @@ import Cookies from "js-cookie";
 export const AuthContext = createContext();
 
 const AuthContextProvider = ({ children }) => {
-  const [user, setUser] = useState(undefined);
-  const [loading, setLoading] = useState(true); // loading flag
-  const [relod,setRelod]= useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(false);
 
-  const token = Cookies.get("token");
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = Cookies.get("token");
 
-useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      if (token) {
-        const response = await axios.get("localhost:3000/auth/user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get("http://localhost:3000/auth/user", {
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data.data);
-      } else {
-        setUser(null); // token not present
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        Cookies.remove("token");
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching user data:", err);
-      Cookies.remove("token");
-      setUser(null);
-    } finally {
-      setLoading(false); // ✅ Move this here
-    }
-  };
+    };
 
-  fetchUser();
-}, [relod]);
+    fetchUser();
+  }, [reload]);
 
-  
-
-
-
- const logout = () => {
+  const logout = () => {
     Cookies.remove("token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout , loading ,relod, setRelod}}>
+    <AuthContext.Provider value={{ user, setUser, logout, loading, reload, setReload }}>
       {children}
     </AuthContext.Provider>
   );
