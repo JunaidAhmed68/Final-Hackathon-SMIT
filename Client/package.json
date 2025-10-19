@@ -25,6 +25,7 @@
     "firebase": "^11.9.1",
     "framer-motion": "^12.23.3",
     "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.57.0",
