@@ -174,7 +174,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import { NavLink, useNavigate } from 'react-router-dom';
-import EmailConfirmationModal from '../components/confirmModal';
+import EmailConfirmationModal from './components/confirmModal.jsx';
 import { toast } from 'react-toastify';
 import Button from '@mui/material/Button';
 
