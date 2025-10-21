@@ -55,7 +55,7 @@ const AllInsights = () => {
     const fetchAllInsights = async () => {
       try {
         const token = Cookies.get("token");
-        const res = await axios.get("http://localhost:3000/ai/timeline", {
+        const res = await axios.get("https://final-hackathon-smit-eight.vercel.app/ai/timeline", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

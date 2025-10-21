@@ -117,7 +117,7 @@ const UploadReport = () => {
       }
 
       const res = await axios.post(
-        "http://localhost:3000/ai/analyze-file",
+        "https://final-hackathon-smit-eight.vercel.app/ai/analyze-file",
         formData,
         {
           headers: {
@@ -153,7 +153,7 @@ const UploadReport = () => {
       // Translate summary
       if (data.summary) {
         const summaryResponse = await axios.post(
-          "http://localhost:3000/translate/english-to-urdu",
+          "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
           { text: data.summary },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -169,7 +169,7 @@ const UploadReport = () => {
       if (data.keyFindings && data.keyFindings.length > 0) {
         const keyFindingsPromises = data.keyFindings.map(finding => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: finding },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -188,7 +188,7 @@ const UploadReport = () => {
       if (data.abnormalValues && data.abnormalValues.length > 0) {
         const abnormalValuesPromises = data.abnormalValues.map(value => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: value },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -207,7 +207,7 @@ const UploadReport = () => {
       if (data.doctorQuestions && data.doctorQuestions.length > 0) {
         const doctorQuestionsPromises = data.doctorQuestions.map(question => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: question },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -226,7 +226,7 @@ const UploadReport = () => {
       if (data.homeRemedies && data.homeRemedies.length > 0) {
         const homeRemediesPromises = data.homeRemedies.map(remedy => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: remedy },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -245,7 +245,7 @@ const UploadReport = () => {
       if (data.foodSuggestions) {
         const recommendedPromises = data.foodSuggestions.recommended?.map(food => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: food },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -253,7 +253,7 @@ const UploadReport = () => {
         
         const avoidPromises = data.foodSuggestions.avoid?.map(food => 
           axios.post(
-            "http://localhost:3000/translate/english-to-urdu",
+            "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
             { text: food },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -283,7 +283,7 @@ const UploadReport = () => {
       // Translate friendly note
       if (data.friendlyNote) {
         const friendlyNoteResponse = await axios.post(
-          "http://localhost:3000/translate/english-to-urdu",
+          "https://final-hackathon-smit-eight.vercel.app/translate/english-to-urdu",
           { text: data.friendlyNote },
           { headers: { Authorization: `Bearer ${token}` } }
         );

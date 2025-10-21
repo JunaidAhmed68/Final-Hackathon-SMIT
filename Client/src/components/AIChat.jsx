@@ -80,7 +80,7 @@ const AIChat = ({ context, reportId, onClose, position = 'fixed' }) => {
     try {
       const token = Cookies.get('token');
       const response = await axios.post(
-        'http://localhost:3000/ai/chat',
+        'https://final-hackathon-smit-eight.vercel.app/ai/chat',
         {
           message: input,
           context: context,

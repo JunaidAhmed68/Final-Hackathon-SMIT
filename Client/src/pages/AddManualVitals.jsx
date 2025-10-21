@@ -166,7 +166,7 @@ const AddManualVitals = () => {
       }
 
       await axios.post(
-        "http://localhost:3000/ai/add-vitals",
+        "https://final-hackathon-smit-eight.vercel.app/ai/add-vitals",
         {
           date: vitals.date ? new Date(vitals.date) : new Date(),
           bloodPressure: {

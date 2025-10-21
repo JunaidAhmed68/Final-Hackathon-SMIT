@@ -81,7 +81,7 @@ const ForgotPassword = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/auth/forgot-password",
+        "https://final-hackathon-smit-eight.vercel.app/auth/forgot-password",
         { email }
       );
       toast.success("📧 Password reset link sent successfully!");

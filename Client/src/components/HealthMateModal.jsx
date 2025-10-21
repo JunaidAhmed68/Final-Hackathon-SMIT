@@ -21,7 +21,7 @@ const HealthMateModal = ({ open, onClose }) => {
     formData.append('file', file);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/ai/analyze-file', formData, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
+      const res = await axios.post('https://final-hackathon-smit-eight.vercel.app/ai/analyze-file', formData, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
       setAnalysis(res.data.data);
       toast.success('Analysis complete');
     } catch (err) {

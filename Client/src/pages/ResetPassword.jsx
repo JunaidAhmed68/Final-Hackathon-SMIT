@@ -25,7 +25,7 @@ const ResetPassword = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        `http://localhost:3000/auth/reset-password/${token}`,
+        `https://final-hackathon-smit-eight.vercel.app/auth/reset-password/${token}`,
         { password }
       );
       toast.success(res.data.message);

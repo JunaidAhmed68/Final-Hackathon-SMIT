@@ -41,14 +41,14 @@ const ReportView = () => {
         const token = Cookies.get('token');
         
         // Fetch report details
-        const reportRes = await axios.get(`http://localhost:3000/ai/report/${id}`, {
+        const reportRes = await axios.get(`https://final-hackathon-smit-eight.vercel.app/ai/report/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         
         setReport(reportRes.data.data);
 
         // Fetch AI insights for this report
-        const insightsRes = await axios.get(`http://localhost:3000/ai/insights/${id}`, {
+        const insightsRes = await axios.get(`https://final-hackathon-smit-eight.vercel.app/ai/insights/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         
@@ -67,7 +67,7 @@ const ReportView = () => {
   const handleDownload = async () => {
     try {
       const token = Cookies.get('token');
-      const response = await axios.get(`http://localhost:3000/ai/report/${id}/download`, {
+      const response = await axios.get(`https://final-hackathon-smit-eight.vercel.app/ai/report/${id}/download`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });

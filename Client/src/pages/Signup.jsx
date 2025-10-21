@@ -93,7 +93,7 @@ const Signup = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:3000/confirm-email/send', { email: data.email });
+      await axios.post('https://final-hackathon-smit-eight.vercel.app/confirm-email/send', { email: data.email });
       setRegisteredEmail(data.email);
       setPendingUserData(data);
       setShowModal(true);
@@ -107,7 +107,7 @@ const Signup = () => {
 
   const handleVerificationSuccess = async () => {
     try {
-      await axios.post('http://localhost:3000/auth/signup', pendingUserData);
+      await axios.post('https://final-hackathon-smit-eight.vercel.app/auth/signup', pendingUserData);
       toast.success('🎉 Account created successfully! You can now log in.');
       setShowModal(false);
       navigate('/login');

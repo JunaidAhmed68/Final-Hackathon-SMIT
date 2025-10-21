@@ -20,7 +20,7 @@ const AuthContextProvider = ({ children }) => {
       }
 
       try {
-        const response = await axios.get("http://localhost:3000/auth/user", {
+        const response = await axios.get("https://final-hackathon-smit-eight.vercel.app/auth/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data.data);

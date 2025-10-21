@@ -66,7 +66,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", data);
+      const res = await axios.post("https://final-hackathon-smit-eight.vercel.app/auth/login", data);
       const { user, token } = res.data;
 
       Cookies.set("token", token, { expires: 7 });

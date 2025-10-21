@@ -66,7 +66,7 @@ const EmailConfirmationModal = ({ email, onVerified, onClose }) => {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/confirm-email/verify", {
+      await axios.post("https://final-hackathon-smit-eight.vercel.app/confirm-email/verify", {
         email,
         code: code.trim(),
       });
@@ -84,7 +84,7 @@ const EmailConfirmationModal = ({ email, onVerified, onClose }) => {
   const handleResendCode = async () => {
     setResendLoading(true);
     try {
-      await axios.post("http://localhost:3000/confirm-email/send", { email });
+      await axios.post("https://final-hackathon-smit-eight.vercel.app/confirm-email/send", { email });
       setTimer(60); // 60 seconds cooldown
       toast.info("📧 New verification code sent to your email!");
     } catch (err) {
