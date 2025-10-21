@@ -45,15 +45,12 @@ HealthMate is an intelligent web application that uses artificial intelligence t
 ## 🚀 Demo
 
 ### Live Demo
-🔗 [Coming Soon](#)
+🔗 https://final-hackathon-smit-afbr.vercel.app/
 
 ### Screenshots
 | Upload Report | Analysis Results | Urdu Translation |
 |---------------|------------------|------------------|
-| <img width="953" height="407" alt="f2" src="https://github.com/user-attachments/assets/e1a8e34d-3388-4712-86f2-9c839e4c5260" />
- | <img width="1833" height="733" alt="Screenshot 2025-10-22 014718" src="https://github.com/user-attachments/assets/cbf80759-21d7-4961-bb79-d08587ac9849" />
-|<img width="917" height="367" alt="f3" src="https://github.com/user-attachments/assets/3a0bc902-a34f-4029-855e-5378bb03a879" />
- |
+| <img width="953" height="407" alt="f2" src="https://github.com/user-attachments/assets/e1a8e34d-3388-4712-86f2-9c839e4c5260" />| <img width="1833" height="733" alt="Screenshot 2025-10-22 014718" src="https://github.com/user-attachments/assets/cbf80759-21d7-4961-bb79-d08587ac9849" />|<img width="917" height="367" alt="f3" src="https://github.com/user-attachments/assets/3a0bc902-a34f-4029-855e-5378bb03a879" />|
 
 ## 🛠️ Installation
 
