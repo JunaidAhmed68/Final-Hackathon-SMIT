@@ -44,34 +44,75 @@
 // export default App_Routes;
 // // ...existing code...
 
-
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import UploadReport from './pages/UploadReport';
-import AddManualVitals from './pages/AddManualVitals';
-import ViewReport from './pages/ViewReport';
-import TimelineView from './pages/TimelineView';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import App from './App';
-import ProtectedRoute from './components/ProtectedRoute';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import UploadReport from "./pages/UploadReport";
+import AddManualVitals from "./pages/AddManualVitals";
+import ViewReport from "./pages/ViewReport";
+import TimelineView from "./pages/TimelineView";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import App from "./App";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AllReports from "./components/All_reports";
+import AllInsights from "./components/AllInsights";
+import AllVitals from "./components/AllVitals";
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="upload-report" element={<ProtectedRoute><UploadReport /></ProtectedRoute>} />
-        <Route path="add-vitals" element={<ProtectedRoute><AddManualVitals /></ProtectedRoute>} />
-        <Route path="view-report/:id" element={<ProtectedRoute><ViewReport /></ProtectedRoute>} />
-        <Route path="timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="upload-report"
+          element={
+            <ProtectedRoute>
+              <UploadReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="add-vitals"
+          element={
+            <ProtectedRoute>
+              <AddManualVitals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="view-report/:id"
+          element={
+            <ProtectedRoute>
+              <ViewReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="timeline"
+          element={
+            <ProtectedRoute>
+              <TimelineView />
+            </ProtectedRoute>
+          }
+        />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
         <Route path="forgotpassword" element={<ForgotPassword />} />
         <Route path="reset-password/:token" element={<ResetPassword />} />
+        <Route path="/all-reports" element={<AllReports />} />
+        <Route path="/all-insights" element={<AllInsights />} />
+        <Route path="/all-vitals" element={<AllVitals />} />
+        <Route path="/view-report/:id" element={<ViewReport />} />
       </Route>
     </Routes>
   );

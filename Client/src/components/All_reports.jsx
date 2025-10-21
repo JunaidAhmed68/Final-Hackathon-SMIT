@@ -14,6 +14,15 @@ import {
   TextField,
   InputAdornment,
   Paper,
+  Menu,
+  MenuItem,
+  ListItemText,
+  ListItemIcon,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Description,
@@ -23,9 +32,16 @@ import {
   Download,
   Visibility,
   FilterList,
+  PictureAsPdf,
+  InsertDriveFile,
+  Image,
+  Sort,
+  GetApp,
+  Close,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Cookies from "js-cookie"
 import { toast } from 'react-toastify';
 
 const AllReports = () => {
@@ -34,11 +50,19 @@ const AllReports = () => {
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [sortAnchor, setSortAnchor] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadDialog, setDownloadDialog] = useState(null);
+
+  // Filter and sort states
+  const [fileTypeFilter, setFileTypeFilter] = useState('all');
+  const [dateSort, setDateSort] = useState('newest');
 
   useEffect(() => {
     const fetchAllReports = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = Cookies.get("token");
         const res = await axios.get('http://localhost:3000/ai/timeline', {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -49,10 +73,10 @@ const AllReports = () => {
             ...item,
             data: { 
               ...item.data, 
-              uploadDate: new Date(item.data.uploadDate) 
+              uploadDate: new Date(item.data.uploadDate),
+              fileType: getFileType(item.data.originalName),
             },
-          }))
-          .sort((a, b) => b.data.uploadDate - a.data.uploadDate);
+          }));
 
         setReports(allReports);
         setFilteredReports(allReports);
@@ -66,36 +90,168 @@ const AllReports = () => {
     fetchAllReports();
   }, []);
 
-  useEffect(() => {
-    const filtered = reports.filter(report =>
-      report.data.originalName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredReports(filtered);
-  }, [searchTerm, reports]);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+  // Get file type
+  const getFileType = (fileName) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    if (['pdf'].includes(ext)) return 'pdf';
+    if (['doc', 'docx'].includes(ext)) return 'document';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
+    return 'other';
   };
 
   const getFileTypeColor = (fileName) => {
-    const ext = fileName.split('.').pop()?.toLowerCase();
-    switch (ext) {
+    const fileType = getFileType(fileName);
+    switch (fileType) {
       case 'pdf': return '#ff4444';
-      case 'doc': case 'docx': return '#2d87f0';
-      case 'jpg': case 'jpeg': case 'png': return '#00c851';
+      case 'document': return '#2d87f0';
+      case 'image': return '#00c851';
       default: return '#ff8800';
     }
   };
 
   const getFileTypeLabel = (fileName) => {
-    const ext = fileName.split('.').pop()?.toLowerCase();
-    return ext ? ext.toUpperCase() : 'FILE';
+    const fileType = getFileType(fileName);
+    switch (fileType) {
+      case 'pdf': return 'PDF';
+      case 'document': return 'DOC';
+      case 'image': return 'IMAGE';
+      default: return 'FILE';
+    }
   };
+
+  const getFileTypeIcon = (fileName) => {
+    const fileType = getFileType(fileName);
+    switch (fileType) {
+      case 'pdf': return <PictureAsPdf />;
+      case 'document': return <InsertDriveFile />;
+      case 'image': return <Image />;
+      default: return <Description />;
+    }
+  };
+
+  // Apply filters and sorting
+  useEffect(() => {
+    let filtered = [...reports];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(report =>
+        report.data.originalName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply file type filter
+    if (fileTypeFilter !== 'all') {
+      filtered = filtered.filter(report => 
+        getFileType(report.data.originalName) === fileTypeFilter
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      if (dateSort === 'newest') {
+        return b.data.uploadDate - a.data.uploadDate;
+      } else {
+        return a.data.uploadDate - b.data.uploadDate;
+      }
+    });
+
+    setFilteredReports(filtered);
+  }, [searchTerm, fileTypeFilter, dateSort, reports]);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
+  };
+
+  const handleSortClick = (event) => {
+    setSortAnchor(event.currentTarget);
+  };
+
+  const handleSortClose = () => {
+    setSortAnchor(null);
+  };
+
+  const handleFileTypeFilter = (type) => {
+    setFileTypeFilter(type);
+    handleFilterClose();
+  };
+
+  const handleDateSort = (sort) => {
+    setDateSort(sort);
+    handleSortClose();
+  };
+
+  const clearFilters = () => {
+    setFileTypeFilter('all');
+    setDateSort('newest');
+    setSearchTerm('');
+  };
+
+  // Download functionality
+  const handleDownload = async (report) => {
+    setDownloadingId(report.data._id);
+    try {
+      const token = Cookies.get("token");
+      
+      // If the report has a fileUrl, download directly
+      if (report.data.fileUrl) {
+        const response = await axios.get(report.data.fileUrl, {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        });
+
+        // Create blob and download
+        const blob = new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = report.data.originalName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('Report downloaded successfully!');
+      } else {
+        // If no fileUrl, show dialog with alternative options
+        setDownloadDialog(report);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download report');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleViewInBrowser = (report) => {
+    if (report.data.fileUrl) {
+      window.open(report.data.fileUrl, '_blank');
+    } else {
+      toast.error('No file URL available');
+    }
+    setDownloadDialog(null);
+  };
+
+  const handleCloseDownloadDialog = () => {
+    setDownloadDialog(null);
+  };
+
+  const activeFiltersCount = (fileTypeFilter !== 'all' ? 1 : 0) + (searchTerm ? 1 : 0);
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography>Loading reports...</Typography>
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress size={60} />
+       
       </Container>
     );
   }
@@ -106,7 +262,7 @@ const AllReports = () => {
       <Box sx={{ mb: 4 }}>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           sx={{ mb: 2, color: 'primary.main' }}
         >
           Back to Dashboard
@@ -116,14 +272,15 @@ const AllReports = () => {
           All Medical Reports
         </Typography>
         <Typography variant="h6" sx={{ color: 'text.secondary' }}>
-          {reports.length} report{reports.length !== 1 ? 's' : ''} found
+          {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''} found
+          {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount !== 1 ? 's' : ''} active`}
         </Typography>
       </Box>
 
       {/* Search and Filter */}
       <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               placeholder="Search reports by name..."
@@ -138,24 +295,101 @@ const AllReports = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={6} md={3}>
             <Button
               fullWidth
               variant="outlined"
               startIcon={<FilterList />}
+              onClick={handleFilterClick}
               sx={{ height: '56px' }}
             >
-              Filter Reports
+              Filter {fileTypeFilter !== 'all' && '•'}
             </Button>
+            <Menu
+              anchorEl={filterAnchor}
+              open={Boolean(filterAnchor)}
+              onClose={handleFilterClose}
+            >
+              <MenuItem onClick={() => handleFileTypeFilter('all')}>
+                <ListItemText>All File Types</ListItemText>
+                {fileTypeFilter === 'all' && '✓'}
+              </MenuItem>
+              <MenuItem onClick={() => handleFileTypeFilter('pdf')}>
+                <ListItemIcon><PictureAsPdf /></ListItemIcon>
+                <ListItemText>PDF Files</ListItemText>
+                {fileTypeFilter === 'pdf' && '✓'}
+              </MenuItem>
+              <MenuItem onClick={() => handleFileTypeFilter('document')}>
+                <ListItemIcon><InsertDriveFile /></ListItemIcon>
+                <ListItemText>Document Files</ListItemText>
+                {fileTypeFilter === 'document' && '✓'}
+              </MenuItem>
+              <MenuItem onClick={() => handleFileTypeFilter('image')}>
+                <ListItemIcon><Image /></ListItemIcon>
+                <ListItemText>Image Files</ListItemText>
+                {fileTypeFilter === 'image' && '✓'}
+              </MenuItem>
+            </Menu>
+          </Grid>
+          <Grid item xs={6} md={3}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<Sort />}
+              onClick={handleSortClick}
+              sx={{ height: '56px' }}
+            >
+              Sort
+            </Button>
+            <Menu
+              anchorEl={sortAnchor}
+              open={Boolean(sortAnchor)}
+              onClose={handleSortClose}
+            >
+              <MenuItem onClick={() => handleDateSort('newest')}>
+                <ListItemText>Newest First</ListItemText>
+                {dateSort === 'newest' && '✓'}
+              </MenuItem>
+              <MenuItem onClick={() => handleDateSort('oldest')}>
+                <ListItemText>Oldest First</ListItemText>
+                {dateSort === 'oldest' && '✓'}
+              </MenuItem>
+            </Menu>
           </Grid>
         </Grid>
+        
+        {/* Active filters display */}
+        {(fileTypeFilter !== 'all' || searchTerm) && (
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Active filters:
+            </Typography>
+            {fileTypeFilter !== 'all' && (
+              <Chip 
+                label={`Type: ${fileTypeFilter}`} 
+                size="small" 
+                onDelete={() => setFileTypeFilter('all')}
+              />
+            )}
+            {searchTerm && (
+              <Chip 
+                label={`Search: "${searchTerm}"`} 
+                size="small" 
+                onDelete={() => setSearchTerm('')}
+              />
+            )}
+            <Button size="small" onClick={clearFilters}>
+              Clear All
+            </Button>
+          </Box>
+        )}
       </Paper>
 
       {/* Reports Grid */}
       <Grid container spacing={3}>
         {filteredReports.length > 0 ? (
           filteredReports.map((report, index) => (
-            <Grid item xs={12} md={6} key={index}>
+            <Grid item xs={12} md={6} lg={4} key={index}>
               <Card 
                 sx={{ 
                   height: '100%',
@@ -175,10 +409,17 @@ const AllReports = () => {
                         mr: 2
                       }}
                     >
-                      <Description />
+                      {getFileTypeIcon(report.data.originalName)}
                     </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          fontWeight: 600, 
+                          mb: 0.5,
+                          wordBreak: 'break-word'
+                        }}
+                      >
                         {report.data.originalName}
                       </Typography>
                       <Chip 
@@ -214,14 +455,7 @@ const AllReports = () => {
                     >
                       View
                     </Button>
-                    <IconButton 
-                      sx={{ 
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      <Download />
-                    </IconButton>
+                   
                   </Box>
                 </CardContent>
               </Card>
@@ -235,9 +469,13 @@ const AllReports = () => {
                 No reports found
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                {searchTerm ? 'Try adjusting your search terms' : 'Upload your first medical report to get started'}
+                {searchTerm || fileTypeFilter !== 'all' ? 'Try adjusting your filters or search terms' : 'Upload your first medical report to get started'}
               </Typography>
-              {!searchTerm && (
+              {(searchTerm || fileTypeFilter !== 'all') ? (
+                <Button variant="outlined" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              ) : (
                 <Button
                   variant="contained"
                   onClick={() => navigate('/upload-report')}
@@ -250,6 +488,8 @@ const AllReports = () => {
           </Grid>
         )}
       </Grid>
+
+     
     </Container>
   );
 };

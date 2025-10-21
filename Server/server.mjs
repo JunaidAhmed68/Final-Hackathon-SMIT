@@ -5,7 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import confirmEmailRoute from './routes/confirmEmailRoute.js';
 import aiRoutes from './routes/ai.js';
-
+import translationRoutes from './routes/translation.js';
 const app = express();
 const httpServer = createServer(app);
 
@@ -17,6 +17,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/confirm-email', confirmEmailRoute);
 app.use('/ai', aiRoutes);
+app.use('/translate', translationRoutes);
 
 connectDB();
 

@@ -1,187 +1,279 @@
-import React, { useState, useEffect } from "react";
+// components/ReportView.jsx
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
   Container,
-  Button,
   Paper,
+  Typography,
+  Box,
+  Button,
+  Chip,
   Divider,
-  List,
-  ListItem,
-  ListItemText,
-} from "@mui/material";
-import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import Cookies from "js-cookie";
+  CircularProgress,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
+} from '@mui/material';
+import {
+  ArrowBack,
+  Download,
+  SmartToy,
+  Description,
+  CalendarToday,
+} from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
+import AIChat from '../components/AIChat';
 
-const ViewReport = () => {
-  const { id } = useParams(); // this is fileId
+const ReportView = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState(null);
-  const [aiInsight, setAiInsight] = useState(null);
+  const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAIChat, setShowAIChat] = useState(false);
 
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        const token = Cookies.get("token");
-        if (!token) {
-          toast.error("Please login first!");
-          navigate("/login");
-          return;
-        }
-
-        const res = await axios.get("http://localhost:3000/ai/timeline", {
+        const token = Cookies.get('token');
+        
+        // Fetch report details
+        const reportRes = await axios.get(`http://localhost:3000/ai/report/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        setReport(reportRes.data.data);
 
-        const timeline = res.data.data;
-
-        // Find this specific file report
-        const reportData = timeline.find(
-          (item) => item.type === "file" && item.data._id === id
-        );
-        setReport(reportData?.data || null);
-
-        // Find related AI Insight
-        const insightData = timeline.find(
-          (item) =>
-            item.type === "insight" &&
-            item.data.fileId &&
-            item.data.fileId._id === id
-        );
-        setAiInsight(insightData?.data?.fileAnalysis || null);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to fetch report data");
+        // Fetch AI insights for this report
+        const insightsRes = await axios.get(`http://localhost:3000/ai/insights/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        setInsights(insightsRes.data.data);
+      } catch (error) {
+        console.error('Error fetching report:', error);
+        toast.error('Failed to load report details');
       } finally {
         setLoading(false);
       }
     };
 
     fetchReportData();
-  }, [id, navigate]);
+  }, [id]);
 
-  if (loading) return <Typography align="center">Loading...</Typography>;
+  const handleDownload = async () => {
+    try {
+      const token = Cookies.get('token');
+      const response = await axios.get(`http://localhost:3000/ai/report/${id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
 
-  if (!report)
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = report.originalName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Report downloaded successfully!');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download report');
+    }
+  };
+
+  if (loading) {
     return (
-      <Typography align="center" sx={{ mt: 4 }}>
-        Report not found.
-      </Typography>
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
+        <CircularProgress size={60} />
+        
+      </Container>
     );
+  }
+
+  if (!report) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity="error">
+          Report not found. Please try again.
+        </Alert>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/')}
+          sx={{ mt: 2 }}
+        >
+          Back to Dashboard
+        </Button>
+      </Container>
+    );
+  }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-          View Report
-        </Typography>
-
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>
-          <strong>Report Name:</strong> {report.originalName}
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        {aiInsight ? (
-          <>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Summary / AI Insights:
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {aiInsight.summary || "No summary available"}
-            </Typography>
-
-            <Typography variant="h6" sx={{ mt: 3 }}>
-              Urdu Summary:
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {aiInsight.urduSummary || "Roman Urdu summary not available"}
-            </Typography>
-
-            {aiInsight.keyFindings?.length > 0 && (
-              <>
-                <Typography variant="h6">Key Findings:</Typography>
-                <List dense>
-                  {aiInsight.keyFindings.map((item, i) => (
-                    <ListItem key={i}>
-                      <ListItemText primary={`• ${item}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-
-            {aiInsight.doctorQuestions?.length > 0 && (
-              <>
-                <Typography variant="h6" sx={{ mt: 3 }}>
-                  Questions to Ask Doctor:
-                </Typography>
-                <List dense>
-                  {aiInsight.doctorQuestions.map((q, i) => (
-                    <ListItem key={i}>
-                      <ListItemText primary={`• ${q}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-
-            {aiInsight.foodSuggestions && (
-              <>
-                <Typography variant="h6" sx={{ mt: 3 }}>
-                  Food Suggestions:
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Avoid:</strong>{" "}
-                  {aiInsight.foodSuggestions.avoid?.join(", ") || "None"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Recommended:</strong>{" "}
-                  {aiInsight.foodSuggestions.recommended?.join(", ") || "None"}
-                </Typography>
-              </>
-            )}
-
-            {aiInsight.homeRemedies?.length > 0 && (
-              <>
-                <Typography variant="h6" sx={{ mt: 3 }}>
-                  Home Remedies:
-                </Typography>
-                <List dense>
-                  {aiInsight.homeRemedies.map((r, i) => (
-                    <ListItem key={i}>
-                      <ListItemText primary={`• ${r}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-
-            {aiInsight.friendlyNote && (
-              <Typography variant="body2" sx={{ mt: 3, fontStyle: "italic" }}>
-                🩺 {aiInsight.friendlyNote}
-              </Typography>
-            )}
-          </>
-        ) : (
-          <Typography color="text.secondary">
-            No AI summary available for this report.
-          </Typography>
-        )}
-
+    <Container maxWidth="lg" sx={{ mt: 3, mb: 6 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
         <Button
-          variant="contained"
-          onClick={() => navigate(-1)}
-          sx={{ mt: 3 }}
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/')}
+          sx={{ mb: 2 }}
         >
-          Back
+          Back to Dashboard
         </Button>
-      </Paper>
+        
+        <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+          <Grid item xs={12} md={8}>
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+              {report.originalName}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <CalendarToday sx={{ mr: 1, color: 'text.secondary' }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Uploaded {new Date(report.uploadDate).toLocaleDateString()}
+                </Typography>
+              </Box>
+              <Chip 
+                label={report.fileType?.toUpperCase() || 'FILE'} 
+                size="small" 
+                color="primary" 
+                variant="outlined" 
+              />
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              startIcon={<SmartToy />}
+              onClick={() => setShowAIChat(true)}
+            >
+              Ask AI
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Download />}
+              onClick={handleDownload}
+            >
+              Download
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+
+      <Grid container spacing={4}>
+        {/* Report Preview/Details */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 4, borderRadius: 3 }}>
+            <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+              <Description sx={{ mr: 1 }} />
+              Report Content
+            </Typography>
+            
+            {report.fileUrl ? (
+              <Box sx={{ height: '600px', border: 1, borderColor: 'divider', borderRadius: 2 }}>
+                <iframe
+                  src={report.fileUrl}
+                  title={report.originalName}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 'none', borderRadius: '8px' }}
+                />
+              </Box>
+            ) : (
+              <Alert severity="info">
+                Report preview not available. You can download the file to view its contents.
+              </Alert>
+            )}
+          </Paper>
+        </Grid>
+
+        {/* AI Insights Sidebar */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 4, borderRadius: 3, position: 'sticky', top: 100 }}>
+            <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+              <SmartToy sx={{ mr: 1 }} />
+              AI Analysis
+            </Typography>
+
+            {insights ? (
+              <Box>
+                <Alert severity={insights.severity || 'info'} sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    {insights.severity?.toUpperCase() || 'INFO'} PRIORITY
+                  </Typography>
+                </Alert>
+
+                <Card sx={{ mb: 3, bgcolor: 'primary.50' }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Summary
+                    </Typography>
+                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                      {insights.summary || 'No summary available.'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+
+                {insights.keyFindings && insights.keyFindings.length > 0 && (
+                  <Card sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                        Key Findings
+                      </Typography>
+                      {insights.keyFindings.map((finding, index) => (
+                        <Box key={index} sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                          <Chip 
+                            label={finding.severity} 
+                            size="small" 
+                            color={
+                              finding.severity === 'high' ? 'error' :
+                              finding.severity === 'medium' ? 'warning' : 'success'
+                            }
+                            sx={{ mr: 1, minWidth: 60 }}
+                          />
+                          <Typography variant="body2">{finding.description}</Typography>
+                        </Box>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<SmartToy />}
+                  onClick={() => setShowAIChat(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Ask Questions About This Report
+                </Button>
+              </Box>
+            ) : (
+              <Alert severity="info">
+                AI analysis not available for this report yet.
+              </Alert>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* AI Chat for Report */}
+      {showAIChat && (
+        <AIChat
+          context="report"
+          reportId={id}
+          onClose={() => setShowAIChat(false)}
+          position="fixed"
+        />
+      )}
     </Container>
   );
 };
 
-export default ViewReport;
+export default ReportView;

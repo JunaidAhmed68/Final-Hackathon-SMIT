@@ -9,14 +9,18 @@ import {
   Divider,
   CircularProgress,
   Paper,
+  Button,
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
+import { ArrowBack } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const TimelineView = () => {
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTimeline = async () => {
@@ -58,9 +62,17 @@ const TimelineView = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
+              <Button
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/')}
+          sx={{ mt: 2 }}
+        >
+          Back to Dashboard
+        </Button>
       <Typography variant="h4" gutterBottom>
         Timeline
       </Typography>
+
 
       {timeline.length === 0 ? (
         <Typography color="text.secondary" sx={{ mt: 3 }}>
